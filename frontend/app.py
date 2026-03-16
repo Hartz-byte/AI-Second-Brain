@@ -59,7 +59,9 @@ with st.sidebar:
         if st.button("Add Text"):
             with st.spinner("Adding..."):
                 try:
-                    r = requests.post(f"{API}/add", json={"text": content})
+                    # Get fresh URL every time
+                    target_api = get_api_url()
+                    r = requests.post(f"{target_api}/add", json={"text": content})
                     if r.status_code == 200:
                         res = r.json()
                         if "error" in res:
@@ -69,8 +71,8 @@ with st.sidebar:
                             st.success("Content added")
                             add_log("Successfully added text content.")
                     else:
-                        st.error(f"Backend returned status {r.status_code}")
-                        st.code(r.text[:500]) # Show the first 500 chars of error
+                        st.error(f"Backend error: {r.status_code}")
+                        st.code(r.text[:500])
                         add_log(f"Backend error {r.status_code}")
                 except Exception as e:
                     st.error(f"Request failed: {e}")
@@ -82,8 +84,9 @@ with st.sidebar:
         if st.button("Process PDF") and pdf_file:
             with st.spinner("Processing PDF..."):
                 try:
+                    target_api = get_api_url()
                     files = {"file": (pdf_file.name, pdf_file.getvalue(), "application/pdf")}
-                    r = requests.post(f"{API}/upload_pdf", files=files)
+                    r = requests.post(f"{target_api}/upload_pdf", files=files)
                     if r.status_code == 200:
                         res = r.json()
                         if "error" in res:
@@ -104,7 +107,8 @@ with st.sidebar:
         if st.button("Process YouTube"):
             with st.spinner("Fetching transcript..."):
                 try:
-                    r = requests.post(f"{API}/youtube", json={"url": youtube_url})
+                    target_api = get_api_url()
+                    r = requests.post(f"{target_api}/youtube", json={"url": youtube_url})
                     if r.status_code == 200:
                         res = r.json()
                         if "error" in res:
@@ -125,7 +129,8 @@ with st.sidebar:
         if st.button("Scrape Article"):
             with st.spinner("Scraping..."):
                 try:
-                    r = requests.post(f"{API}/scrape", json={"url": url})
+                    target_api = get_api_url()
+                    r = requests.post(f"{target_api}/scrape", json={"url": url})
                     if r.status_code == 200:
                         res = r.json()
                         if "error" in res:
@@ -180,8 +185,8 @@ if nav_selection == "Chat with your Second Brain":
             with st.spinner("Thinking..."):
                 try:
                     # Get fresh API URL inside the block
-                    current_api = get_api_url()
-                    r = requests.post(f"{current_api}/ask", json={"question": prompt})
+                    target_api = get_api_url()
+                    r = requests.post(f"{target_api}/ask", json={"question": prompt})
                     if r.status_code == 200:
                         res = r.json()
                         if "error" in res:
@@ -194,7 +199,10 @@ if nav_selection == "Chat with your Second Brain":
                         # Add assistant response to chat history
                         st.session_state.messages.append({"role": "assistant", "content": response_msg})
                     else:
-                        st.error("Backend error")
+                        st.error(f"Backend error: {r.status_code}")
+                        st.code(r.text[:500])
+                        # Keep history consistent
+                        st.session_state.messages.append({"role": "assistant", "content": "Error: Failed to get response from backend."})
                 except Exception as e:
                     error_msg = str(e)
                     if "localhost" in error_msg:
