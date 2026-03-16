@@ -1,5 +1,5 @@
 from backend.embeddings import embed_texts
-from vector_store.faiss_db import VectorStore
+from vector_store.pinecone_db import VectorStore
 
 vector_db = VectorStore()
 

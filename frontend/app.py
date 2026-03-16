@@ -143,8 +143,8 @@ elif nav_selection == "About the project":
     It allows you to build a custom knowledge base by combining various data sources, and then ask questions against that aggregated knowledge using an LLM.
 
     ### ✨ Key Features
-    - **Persistent FAISS Vector Storage:** Everything you add is saved to a local FAISS index on disk so you don't lose data on restarts!
-    - **Hybrid Search (BM25 + FAISS):** We perform Reciprocal Rank Fusion by combining traditional keyword searches with advanced semantic vector embeddings for extreme accuracy.
+    - **Persistent Pinecone Vector Storage:** Everything you add is saved directly to a cloud Pinecone index so you don't lose data on restarts!
+    - **Hybrid Search:** We perform Reciprocal Rank Fusion by combining traditional keyword searches with advanced semantic vector embeddings for extreme accuracy.
     - **Overlapping Chunks:** Text is intelligently sliced with context overlaps so sentences don't cut off awkwardly.
     - **Source Tracking:** The bot knows *exactly* where a fact came from (e.g. `PDF - document.pdf`, `YouTube Video - ...`) and feeds that into the prompt.
     - **Beautiful UI:** A full chatbot experience with a live ingestion Activity Log.
@@ -152,7 +152,7 @@ elif nav_selection == "About the project":
     ### 🛠️ Tech Stack & Tools
     - **Frontend:** Streamlit 
     - **Backend:** FastAPI, Python
-    - **Database:** FAISS (Facebook AI Similarity Search)
+    - **Database:** Pinecone Serverless Cloud Vector Database
     - **Embeddings:** `all-MiniLM-L6-v2` via SentenceTransformers
     - **LLM Engine:** Groq API leveraging `llama-3.3-70b-versatile`
     - **Hybrid Retrieval:** `rank_bm25` (BM25Okapi)
