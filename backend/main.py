@@ -20,31 +20,36 @@ app.add_middleware(
 def root():
     return {"status": "AI Second Brain Backend is Running!"}
 
+@app.get("/debug")
+def debug():
+    import os
+    return {
+        "GROQ_KEY_PRESENT": os.getenv("GROQ_API_KEY") is not None,
+        "PINECONE_KEY_PRESENT": os.getenv("PINECONE_API_KEY") is not None,
+        "HF_TOKEN_PRESENT": os.getenv("HF_TOKEN") is not None,
+        "API_BASE": os.getenv("OPENAI_API_BASE")
+    }
 
 def chunk_text(text, source, size=500, overlap=100):
     chunks = []
-    # simple overlap logic
     for i in range(0, len(text), size - overlap):
         chunk = text[i:i+size]
         chunks.append({"text": chunk, "source": source})
     return chunks
 
-
 @app.post("/add")
 def add_content(data: dict):
-
     chunks = chunk_text(data["text"], source="Direct Text Input")
     add_documents(chunks)
-
     return {"status": "added"}
-
 
 @app.post("/ask")
 def ask(data: dict):
-
-    answer = ask_question(data["question"])
-
-    return {"answer": answer}
+    try:
+        answer = ask_question(data["question"])
+        return {"answer": answer}
+    except Exception as e:
+        return {"error": str(e)}
 
 
 # PDF UPLOAD
