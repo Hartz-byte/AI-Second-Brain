@@ -2,9 +2,16 @@ import streamlit as st
 import requests
 import os
 
-API = os.getenv("API_URL", "http://localhost:8000").strip("/")
+if "API_URL" in st.secrets:
+    API = st.secrets["API_URL"].strip("/")
+else:
+    API = os.getenv("API_URL", "http://localhost:8000").strip("/")
 
 st.set_page_config(page_title="AI Second Brain", layout="wide")
+
+# Sidebar connection indicator
+with st.sidebar:
+    st.caption(f"📍 Backend: `{API}`")
 
 # Initialize session state for messages and logs
 if "messages" not in st.session_state:
