@@ -2,6 +2,8 @@ import streamlit as st
 import requests
 import os
 
+st.set_page_config(page_title="AI Second Brain", layout="wide")
+
 # Handle Streamlit Secrets (for Cloud) or Environment Variables (for local/Render)
 def get_api_url():
     # 1. Try st.secrets (best for Streamlit Cloud)
@@ -16,13 +18,24 @@ def get_api_url():
     # 3. Fallback to Localhost
     return "http://localhost:8000"
 
-API = get_api_url()
-
-st.set_page_config(page_title="AI Second Brain", layout="wide")
-
 # Sidebar connection indicator
+API = get_api_url()
 with st.sidebar:
     st.caption(f"📍 Backend: `{API}`")
+    if st.button("Check Connection"):
+        try:
+            r = requests.get(f"{API}/")
+            if r.status_code == 200:
+                st.success("✅ Backend Online!")
+            else:
+                st.error(f"❌ Backend offline ({r.status_code})")
+        except Exception as e:
+            st.error(f"❌ Connection failed: {e}")
+    
+    if st.button("🔄 Clear Chat & Logs"):
+        st.session_state.messages = []
+        st.session_state.logs = []
+        st.rerun()
 
 # Initialize session state for messages and logs
 if "messages" not in st.session_state:
@@ -166,7 +179,9 @@ if nav_selection == "Chat with your Second Brain":
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 try:
-                    r = requests.post(f"{API}/ask", json={"question": prompt})
+                    # Get fresh API URL inside the block
+                    current_api = get_api_url()
+                    r = requests.post(f"{current_api}/ask", json={"question": prompt})
                     if r.status_code == 200:
                         res = r.json()
                         if "error" in res:
