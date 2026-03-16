@@ -42,8 +42,12 @@ if st.button("Add Text"):
         f"{API}/add",
         json={"text": content}
     )
-
-    st.success("Content added")
+    
+    res = r.json()
+    if "error" in res:
+        st.error(res["error"])
+    else:
+        st.success("Content added")
 
 
 # PDF UPLOAD
@@ -60,7 +64,11 @@ if st.button("Process PDF") and pdf_file:
         files=files
     )
 
-    st.success("PDF ingested")
+    res = r.json()
+    if "error" in res:
+        st.error(res["error"])
+    else:
+        st.success("PDF ingested")
 
 
 # YOUTUBE INGESTION
@@ -75,7 +83,11 @@ if st.button("Process YouTube"):
         json={"url": youtube_url}
     )
 
-    st.success("YouTube transcript added")
+    res = r.json()
+    if "error" in res:
+        st.error(res["error"])
+    else:
+        st.success("YouTube transcript added")
 
 
 # WEB ARTICLE
@@ -90,4 +102,8 @@ if st.button("Scrape Article"):
         json={"url": url}
     )
 
-    st.success("Article added")
+    res = r.json()
+    if "error" in res:
+        st.error(res["error"])
+    else:
+        st.success("Article added")
