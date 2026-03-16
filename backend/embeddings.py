@@ -8,7 +8,7 @@ load_dotenv()
 
 # We use the same model but hosted on Hugging Face's free Inference API
 MODEL_ID = "sentence-transformers/all-MiniLM-L6-v2"
-API_URL = f"https://api-inference.huggingface.co/pipeline/feature-extraction/{MODEL_ID}"
+API_URL = f"https://router.huggingface.co/pipeline/feature-extraction/{MODEL_ID}"
 HF_TOKEN = os.getenv("HF_TOKEN")
 
 def embed_texts(texts):
