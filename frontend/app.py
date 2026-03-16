@@ -37,16 +37,16 @@ with st.sidebar:
                 st.error(f"❌ Backend offline ({r.status_code})")
         except Exception as e:
             st.error(f"❌ Connection failed: {e}")
-            
-    st.divider()
-    
-    # Text-to-Speech Toggle
-    mute_tts = st.toggle("🔇 Mute Voice Assistant", value=False)
     
     if st.button("🔄 Clear Chat & Logs"):
         st.session_state.messages = []
         st.session_state.logs = []
         st.rerun()
+
+    # Text-to-Speech Toggle
+    mute_tts = st.toggle("🔇 Mute Voice Assistant", value=False)
+    
+    st.divider()
 
 # Initialize session state for messages and logs
 if "messages" not in st.session_state:
