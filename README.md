@@ -2,7 +2,6 @@
 
 **Your Personal AI-Powered Knowledge Assistant**
 
-[![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_svg.svg)](https://ai-second-brain-rag.streamlit.app/)
 
 ## 🚀 Live Demo
 Access the deployed application here: [https://ai-second-brain-rag.streamlit.app/](https://ai-second-brain-rag.streamlit.app/)
