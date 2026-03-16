@@ -1,4 +1,5 @@
 from fastapi import FastAPI, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from backend.rag_pipeline import ask_question
 from backend.retriever import add_documents
 from ingestion.pdf_parser import parse_pdf
@@ -6,6 +7,14 @@ from ingestion.youtube_parser import get_transcript
 from ingestion.web_scraper import scrape_article
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 def chunk_text(text, source, size=500, overlap=100):
