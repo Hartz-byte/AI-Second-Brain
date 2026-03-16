@@ -3,107 +3,124 @@ import requests
 
 API = "http://localhost:8000"
 
-st.title("AI Second Brain")
+st.set_page_config(page_title="AI Second Brain", layout="wide")
 
-# ASK QUESTIONS
-st.header("Ask your knowledge base")
+# Initialize session state for messages and logs
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-question = st.text_input("Ask something")
+if "logs" not in st.session_state:
+    st.session_state.logs = []
 
-if st.button("Ask"):
+def add_log(msg):
+    st.session_state.logs.append(msg)
 
-    r = requests.post(
-        f"{API}/ask",
-        json={"question": question}
-    )
+st.title("AI Second Brain 🧠")
 
-    if r.status_code == 200:
-
-        res = r.json()
-
-        if "error" in res:
-            st.error(res["error"])
-
-        else:
-            st.write(res["answer"])
-
-    else:
-        st.error("Backend error")
-
-
-# ADD TEXT CONTENT
-st.header("Add Text")
-
-content = st.text_area("Paste knowledge")
-
-if st.button("Add Text"):
-
-    r = requests.post(
-        f"{API}/add",
-        json={"text": content}
-    )
+# ================= SIDEBAR =================
+with st.sidebar:
+    st.header("⚙️ Data Ingestion")
     
-    res = r.json()
-    if "error" in res:
-        st.error(res["error"])
-    else:
-        st.success("Content added")
+    # 1. Add Text
+    with st.expander("📝 Add Text content"):
+        content = st.text_area("Paste knowledge")
+        if st.button("Add Text"):
+            with st.spinner("Adding..."):
+                r = requests.post(f"{API}/add", json={"text": content})
+                res = r.json()
+                if "error" in res:
+                    st.error(res["error"])
+                    add_log(f"Error adding text: {res['error']}")
+                else:
+                    st.success("Content added")
+                    add_log("Successfully added text content.")
+
+    # 2. Add PDF
+    with st.expander("📄 Upload PDF"):
+        pdf_file = st.file_uploader("Upload PDF", type=["pdf"])
+        if st.button("Process PDF") and pdf_file:
+            with st.spinner("Processing PDF..."):
+                files = {"file": pdf_file.getvalue()}
+                r = requests.post(f"{API}/upload_pdf", files=files)
+                res = r.json()
+                if "error" in res:
+                    st.error(res["error"])
+                    add_log(f"Error adding PDF: {res['error']}")
+                else:
+                    st.success("PDF ingested")
+                    add_log(f"Successfully processed PDF: {pdf_file.name}")
+
+    # 3. Add YouTube
+    with st.expander("🎥 Add YouTube Video"):
+        youtube_url = st.text_input("YouTube URL")
+        if st.button("Process YouTube"):
+            with st.spinner("Fetching transcript..."):
+                r = requests.post(f"{API}/youtube", json={"url": youtube_url})
+                res = r.json()
+                if "error" in res:
+                    st.error(res["error"])
+                    add_log(f"Error adding YouTube video: {res['error']}")
+                else:
+                    st.success("YouTube transcript added")
+                    add_log(f"Successfully added YouTube transcript for {youtube_url}")
+
+    # 4. Add Web Article
+    with st.expander("🌐 Add Web Article"):
+        url = st.text_input("Article URL")
+        if st.button("Scrape Article"):
+            with st.spinner("Scraping..."):
+                r = requests.post(f"{API}/scrape", json={"url": url})
+                res = r.json()
+                if "error" in res:
+                    st.error(res["error"])
+                    add_log(f"Error scraping article: {res['error']}")
+                else:
+                    st.success("Article added")
+                    add_log(f"Successfully scraped article: {url}")
+                    
+    st.divider()
+    st.header("📜 Activity Logs")
+    v_logs = st.container()
+    with v_logs:
+        if not st.session_state.logs:
+            st.write("No activity yet.")
+        else:
+            for log in reversed(st.session_state.logs):  # show latest first
+                st.write(f"- {log}")
 
 
-# PDF UPLOAD
-st.header("Upload PDF")
+# ================= MAIN CHAT AREA =================
+st.subheader("Chat with your Second Brain")
 
-pdf_file = st.file_uploader("Upload PDF", type=["pdf"])
+# Display chat messages from history on app rerun
+for message in st.session_state.messages:
+    with st.chat_message(message["role"]):
+        st.markdown(message["content"])
 
-if st.button("Process PDF") and pdf_file:
+# React to user input
+if prompt := st.chat_input("Ask something about your knowledge base..."):
+    # Display user message in chat message container
+    st.chat_message("user").markdown(prompt)
+    # Add user message to chat history
+    st.session_state.messages.append({"role": "user", "content": prompt})
 
-    files = {"file": pdf_file.getvalue()}
-
-    r = requests.post(
-        f"{API}/upload_pdf",
-        files=files
-    )
-
-    res = r.json()
-    if "error" in res:
-        st.error(res["error"])
-    else:
-        st.success("PDF ingested")
-
-
-# YOUTUBE INGESTION
-st.header("Add YouTube Video")
-
-youtube_url = st.text_input("YouTube URL")
-
-if st.button("Process YouTube"):
-
-    r = requests.post(
-        f"{API}/youtube",
-        json={"url": youtube_url}
-    )
-
-    res = r.json()
-    if "error" in res:
-        st.error(res["error"])
-    else:
-        st.success("YouTube transcript added")
-
-
-# WEB ARTICLE
-st.header("Add Web Article")
-
-url = st.text_input("Article URL")
-
-if st.button("Scrape Article"):
-
-    r = requests.post(
-        f"{API}/scrape",
-        json={"url": url}
-    )
-
-    res = r.json()
-    if "error" in res:
-        st.error(res["error"])
-    else:
-        st.success("Article added")
+    # Get bot response
+    with st.chat_message("assistant"):
+        with st.spinner("Thinking..."):
+            try:
+                r = requests.post(f"{API}/ask", json={"question": prompt})
+                if r.status_code == 200:
+                    res = r.json()
+                    if "error" in res:
+                        response_msg = f"**Error:** {res['error']}"
+                        st.error(res["error"])
+                    else:
+                        response_msg = res["answer"]
+                        st.markdown(response_msg)
+                        
+                    # Add assistant response to chat history
+                    st.session_state.messages.append({"role": "assistant", "content": response_msg})
+                else:
+                    st.error("Backend error")
+            except Exception as e:
+                st.error(f"Connection failed: {e}")
