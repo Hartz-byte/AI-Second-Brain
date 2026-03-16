@@ -22,6 +22,7 @@ def get_api_url():
 API = get_api_url()
 with st.sidebar:
     st.caption(f"📍 Backend: `{API}`")
+    st.info(f"💡 **Note:** If the backend is inactive (Render Free Tier), click [here]({API}) to wake it up.")
     if st.button("Check Connection"):
         try:
             r = requests.get(f"{API}/")
@@ -51,7 +52,7 @@ st.title("AI Second Brain 🧠")
 
 # SIDEBAR
 with st.sidebar:
-    st.header("⚙️ Data Ingestion")
+    st.header("⚙️ Data Ingestion Options")
     
     # 1. Add Text
     with st.expander("📝 Add Text content"):

@@ -6,6 +6,8 @@
 ## Live Demo
 Access the deployed application here: [https://ai-second-brain-rag.streamlit.app/](https://ai-second-brain-rag.streamlit.app/)
 
+**Note:** The backend is hosted on Render's free tier, which may go into sleep mode after inactivity. If the app fails to connect, please visit the [Backend URL](https://ai-second-brain-o8nj.onrender.com) once to wake it up.
+
 ---
 
 ## Overview
