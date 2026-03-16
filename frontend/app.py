@@ -2,10 +2,21 @@ import streamlit as st
 import requests
 import os
 
-if "API_URL" in st.secrets:
-    API = st.secrets["API_URL"].strip("/")
-else:
-    API = os.getenv("API_URL", "http://localhost:8000").strip("/")
+# Handle Streamlit Secrets (for Cloud) or Environment Variables (for local/Render)
+def get_api_url():
+    # 1. Try st.secrets (best for Streamlit Cloud)
+    if "API_URL" in st.secrets:
+        return st.secrets["API_URL"].strip("/")
+    
+    # 2. Try os.getenv (best for Local or other clouds)
+    env_url = os.getenv("API_URL")
+    if env_url:
+        return env_url.strip("/")
+        
+    # 3. Fallback to Localhost
+    return "http://localhost:8000"
+
+API = get_api_url()
 
 st.set_page_config(page_title="AI Second Brain", layout="wide")
 
@@ -170,7 +181,11 @@ if nav_selection == "Chat with your Second Brain":
                     else:
                         st.error("Backend error")
                 except Exception as e:
-                    st.error(f"Connection failed: {e}")
+                    error_msg = str(e)
+                    if "localhost" in error_msg:
+                        st.error("⚠️ **Connection Failed: The app is still trying to look for the backend on 'localhost'.**\n\nPlease check your Streamlit Cloud **Secrets** and ensure `API_URL` is set to your Render URL.")
+                    else:
+                        st.error(f"Connection failed: {e}")
 
 elif nav_selection == "About the project":
     st.subheader("About the Project")
