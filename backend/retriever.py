@@ -3,18 +3,26 @@ from vector_store.faiss_db import VectorStore
 
 vector_db = VectorStore()
 
-def add_documents(chunks):
-
-    embeddings = embed_texts(chunks)
-    vector_db.add(embeddings, chunks)
+def add_documents(metadata_chunks):
+    # metadata_chunks is a list of {"text": "...", "source": "..."}
+    texts = [doc["text"] for doc in metadata_chunks]
+    embeddings = embed_texts(texts)
+    
+    vector_db.add(embeddings, metadata_chunks)
 
 def retrieve(query):
-
     query_embedding = embed_texts([query])
-
-    docs = vector_db.search(query_embedding)
+    
+    # We now pass the raw query string + the vector embedding!
+    docs = vector_db.search(query, query_embedding)
 
     if not docs:
         return ["No knowledge found in the database."]
 
-    return docs
+    # docs is a list of metadata dicts, convert back to contextual strings
+    formatted_docs = []
+    for doc in docs:
+        source_tag = f"Source: {doc['source']}"
+        formatted_docs.append(f"{source_tag}\n{doc['text']}")
+
+    return formatted_docs
