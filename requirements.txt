@@ -2,12 +2,8 @@
 fastapi==0.111.0
 uvicorn[standard]==0.24.0
 
-# LLM API and embeddings
+# LLM API and database
 openai>=1.30.0
-transformers==4.35.0
-sentence-transformers==2.2.2
-
-# Vector database & Search
 pinecone>=6.0.0
 rank-bm25==0.2.2
 
