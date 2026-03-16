@@ -16,6 +16,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def root():
+    return {"status": "AI Second Brain Backend is Running!"}
+
 
 def chunk_text(text, source, size=500, overlap=100):
     chunks = []

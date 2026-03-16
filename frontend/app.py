@@ -2,7 +2,7 @@ import streamlit as st
 import requests
 import os
 
-API = os.getenv("API_URL", "http://localhost:8000")
+API = os.getenv("API_URL", "http://localhost:8000").strip("/")
 
 st.set_page_config(page_title="AI Second Brain", layout="wide")
 
@@ -27,57 +27,87 @@ with st.sidebar:
         content = st.text_area("Paste knowledge")
         if st.button("Add Text"):
             with st.spinner("Adding..."):
-                r = requests.post(f"{API}/add", json={"text": content})
-                res = r.json()
-                if "error" in res:
-                    st.error(res["error"])
-                    add_log(f"Error adding text: {res['error']}")
-                else:
-                    st.success("Content added")
-                    add_log("Successfully added text content.")
+                try:
+                    r = requests.post(f"{API}/add", json={"text": content})
+                    if r.status_code == 200:
+                        res = r.json()
+                        if "error" in res:
+                            st.error(res["error"])
+                            add_log(f"Error adding text: {res['error']}")
+                        else:
+                            st.success("Content added")
+                            add_log("Successfully added text content.")
+                    else:
+                        st.error(f"Backend returned status {r.status_code}")
+                        st.code(r.text[:500]) # Show the first 500 chars of error
+                        add_log(f"Backend error {r.status_code}")
+                except Exception as e:
+                    st.error(f"Request failed: {e}")
+                    add_log(f"Request failed: {e}")
 
     # 2. Add PDF
     with st.expander("📄 Upload PDF"):
         pdf_file = st.file_uploader("Upload PDF", type=["pdf"])
         if st.button("Process PDF") and pdf_file:
             with st.spinner("Processing PDF..."):
-                files = {"file": pdf_file.getvalue()}
-                r = requests.post(f"{API}/upload_pdf", files=files)
-                res = r.json()
-                if "error" in res:
-                    st.error(res["error"])
-                    add_log(f"Error adding PDF: {res['error']}")
-                else:
-                    st.success("PDF ingested")
-                    add_log(f"Successfully processed PDF: {pdf_file.name}")
+                try:
+                    files = {"file": (pdf_file.name, pdf_file.getvalue(), "application/pdf")}
+                    r = requests.post(f"{API}/upload_pdf", files=files)
+                    if r.status_code == 200:
+                        res = r.json()
+                        if "error" in res:
+                            st.error(res["error"])
+                            add_log(f"Error adding PDF: {res['error']}")
+                        else:
+                            st.success("PDF ingested")
+                            add_log(f"Successfully processed PDF: {pdf_file.name}")
+                    else:
+                        st.error(f"Backend error: {r.status_code}")
+                        st.code(r.text[:500])
+                except Exception as e:
+                    st.error(f"Request failed: {e}")
 
     # 3. Add YouTube
     with st.expander("🎥 Add YouTube Video"):
         youtube_url = st.text_input("YouTube URL")
         if st.button("Process YouTube"):
             with st.spinner("Fetching transcript..."):
-                r = requests.post(f"{API}/youtube", json={"url": youtube_url})
-                res = r.json()
-                if "error" in res:
-                    st.error(res["error"])
-                    add_log(f"Error adding YouTube video: {res['error']}")
-                else:
-                    st.success("YouTube transcript added")
-                    add_log(f"Successfully added YouTube transcript for {youtube_url}")
+                try:
+                    r = requests.post(f"{API}/youtube", json={"url": youtube_url})
+                    if r.status_code == 200:
+                        res = r.json()
+                        if "error" in res:
+                            st.error(res["error"])
+                            add_log(f"Error adding YouTube video: {res['error']}")
+                        else:
+                            st.success("YouTube transcript added")
+                            add_log(f"Successfully added YouTube transcript for {youtube_url}")
+                    else:
+                        st.error(f"Backend error: {r.status_code}")
+                        st.code(r.text[:500])
+                except Exception as e:
+                    st.error(f"Request failed: {e}")
 
     # 4. Add Web Article
     with st.expander("🌐 Add Web Article"):
         url = st.text_input("Article URL")
         if st.button("Scrape Article"):
             with st.spinner("Scraping..."):
-                r = requests.post(f"{API}/scrape", json={"url": url})
-                res = r.json()
-                if "error" in res:
-                    st.error(res["error"])
-                    add_log(f"Error scraping article: {res['error']}")
-                else:
-                    st.success("Article added")
-                    add_log(f"Successfully scraped article: {url}")
+                try:
+                    r = requests.post(f"{API}/scrape", json={"url": url})
+                    if r.status_code == 200:
+                        res = r.json()
+                        if "error" in res:
+                            st.error(res["error"])
+                            add_log(f"Error scraping article: {res['error']}")
+                        else:
+                            st.success("Article added")
+                            add_log(f"Successfully scraped article: {url}")
+                    else:
+                        st.error(f"Backend error: {r.status_code}")
+                        st.code(r.text[:500])
+                except Exception as e:
+                    st.error(f"Request failed: {e}")
                     
     st.divider()
     st.header("📜 Activity Logs")
