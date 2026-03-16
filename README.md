@@ -1,35 +1,35 @@
-# AI Second Brain 🧠 
+# AI Second Brain 
 
 **Your Personal AI-Powered Knowledge Assistant**
 
 
-## 🚀 Live Demo
+## Live Demo
 Access the deployed application here: [https://ai-second-brain-rag.streamlit.app/](https://ai-second-brain-rag.streamlit.app/)
 
 ---
 
-## 📖 Overview
+## Overview
 **AI Second Brain** is a Retrieval-Augmented Generation (RAG) system designed to act as your external digital memory. It allows you to ingest vast amounts of information from multiple sources—PDFs, YouTube videos, web articles, and direct text—and then chat with that knowledge using state-of-the-art LLMs. 
 
 Unlike traditional search, AI Second Brain understands context, tracks sources, and provides grounded answers derived specifically from your personal data pool.
 
 ---
 
-## ✨ Features
-- 📂 **Multi-Source Ingestion**:
+## Features
+- **Multi-Source Ingestion**:
   - **PDF Parser**: Extract text from documents using `PyPDF2`.
   - **YouTube Transcript**: Automatically fetch and index transcripts from video IDs/URLs.
   - **Web Scraper**: Cleanly extract article content from URLs using `BeautifulSoup`.
   - **Direct Paste**: Quickly add snippets of text or notes.
-- 🔍 **Cloud Vector Database**: Uses **Pinecone Serverless** for high-speed, persistent vector storage (no data loss on server restarts).
-- 🧠 **Hybrid Retrieval**: Combines semantic vector search (Dense) with keyword-based ranking (Sparse) for maximum accuracy.
-- ⚡ **Lightning Fast Responses**: Powered by **Groq API** with `Llama-3.3-70b`, delivering near-instant inference.
-- ☁️ **Lightweight Deployment**: Optimized for Free Tier hosting (Render & Streamlit) by offloading heavy ML processing to **Hugging Face Inference APIs**.
-- 🛠️ **Source Attribution**: Every answer generated include references to the original source (e.g., *Source: YouTube Video - ID*) to ensure transparency.
+- **Cloud Vector Database**: Uses **Pinecone Serverless** for high-speed, persistent vector storage (no data loss on server restarts).
+- **Hybrid Retrieval**: Combines semantic vector search (Dense) with keyword-based ranking (Sparse) for maximum accuracy.
+- **Lightning Fast Responses**: Powered by **Groq API** with `Llama-3.3-70b`, delivering near-instant inference.
+- **Lightweight Deployment**: Optimized for Free Tier hosting (Render & Streamlit) by offloading heavy ML processing to **Hugging Face Inference APIs**.
+- **Source Attribution**: Every answer generated include references to the original source (e.g., *Source: YouTube Video - ID*) to ensure transparency.
 
 ---
 
-## 🏗️ Architecture
+## Architecture
 
 ```mermaid
 graph TD
@@ -48,7 +48,7 @@ graph TD
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 - **Frontend**: [Streamlit](https://streamlit.io/) (Clean, interactive UI)
 - **Backend**: [FastAPI](https://fastapi.tiangolo.com/) (High-performance API layer)
 - **Vector DB**: [Pinecone](https://www.pinecone.io/) (Serverless vector storage)
@@ -58,7 +58,7 @@ graph TD
 
 ---
 
-## ⚙️ Environment Variables
+## Environment Variables
 To run this project, you need the following keys in your `.env` file or cloud secrets:
 
 | Variable | Description | Source |
@@ -71,7 +71,7 @@ To run this project, you need the following keys in your `.env` file or cloud se
 
 ---
 
-## 🛠️ Installation & Local Setup
+## Installation & Local Setup
 
 1. **Clone the repository**:
    ```bash
@@ -102,7 +102,7 @@ To run this project, you need the following keys in your `.env` file or cloud se
 
 ---
 
-## 📜 Deployment
+## Deployment
 
 ### Backend (Render)
 - Deploy as a **Web Service**.
@@ -117,8 +117,8 @@ To run this project, you need the following keys in your `.env` file or cloud se
 
 ---
 
-## 🤝 Contributing
+## Contributing
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 📄 License
+## License
 This project is licensed under the MIT License - see the LICENSE file for details.

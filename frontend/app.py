@@ -217,18 +217,21 @@ elif nav_selection == "About the project":
 
     It allows you to build a custom knowledge base by combining various data sources, and then ask questions against that aggregated knowledge using an LLM.
 
-    ### ✨ Key Features
+    ### Key Features
     - **Persistent Pinecone Vector Storage:** Everything you add is saved directly to a cloud Pinecone index so you don't lose data on restarts!
     - **Hybrid Search:** We perform Reciprocal Rank Fusion by combining traditional keyword searches with advanced semantic vector embeddings for extreme accuracy.
     - **Overlapping Chunks:** Text is intelligently sliced with context overlaps so sentences don't cut off awkwardly.
     - **Source Tracking:** The bot knows *exactly* where a fact came from (e.g. `PDF - document.pdf`, `YouTube Video - ...`) and feeds that into the prompt.
     - **Beautiful UI:** A full chatbot experience with a live ingestion Activity Log.
 
-    ### 🛠️ Tech Stack & Tools
+    ### Tech Stack & Tools
     - **Frontend:** Streamlit 
     - **Backend:** FastAPI, Python
     - **Database:** Pinecone Serverless Cloud Vector Database
     - **Embeddings:** `all-MiniLM-L6-v2` via SentenceTransformers
     - **LLM Engine:** Groq API leveraging `llama-3.3-70b-versatile`
     - **Hybrid Retrieval:** `rank_bm25` (BM25Okapi)
+    
+    ---
+    **Liked my work?** Check out the [GitHub repo](https://github.com/Hartz-byte/AI-Second-Brain) and give it a star!
     """)
