@@ -89,38 +89,70 @@ with st.sidebar:
                 st.write(f"- {log}")
 
 
-# MAIN CHAT AREA
-st.subheader("Chat with your Second Brain")
+# NAVIGATION BAR
+nav_selection = st.radio(
+    "Navigation", 
+    ["Chat with your Second Brain", "About the project"], 
+    horizontal=True, 
+    label_visibility="collapsed"
+)
 
-# Display chat messages from history on app rerun
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
+if nav_selection == "Chat with your Second Brain":
+    # MAIN CHAT AREA
+    st.subheader("Chat with your Second Brain")
 
-# React to user input
-if prompt := st.chat_input("Ask something about your knowledge base..."):
-    # Display user message in chat message container
-    st.chat_message("user").markdown(prompt)
-    # Add user message to chat history
-    st.session_state.messages.append({"role": "user", "content": prompt})
+    # Display chat messages from history on app rerun
+    for message in st.session_state.messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
 
-    # Get bot response
-    with st.chat_message("assistant"):
-        with st.spinner("Thinking..."):
-            try:
-                r = requests.post(f"{API}/ask", json={"question": prompt})
-                if r.status_code == 200:
-                    res = r.json()
-                    if "error" in res:
-                        response_msg = f"**Error:** {res['error']}"
-                        st.error(res["error"])
+    # React to user input
+    if prompt := st.chat_input("Ask something about your knowledge base..."):
+        # Display user message in chat message container
+        st.chat_message("user").markdown(prompt)
+        # Add user message to chat history
+        st.session_state.messages.append({"role": "user", "content": prompt})
+
+        # Get bot response
+        with st.chat_message("assistant"):
+            with st.spinner("Thinking..."):
+                try:
+                    r = requests.post(f"{API}/ask", json={"question": prompt})
+                    if r.status_code == 200:
+                        res = r.json()
+                        if "error" in res:
+                            response_msg = f"**Error:** {res['error']}"
+                            st.error(res["error"])
+                        else:
+                            response_msg = res["answer"]
+                            st.markdown(response_msg)
+                            
+                        # Add assistant response to chat history
+                        st.session_state.messages.append({"role": "assistant", "content": response_msg})
                     else:
-                        response_msg = res["answer"]
-                        st.markdown(response_msg)
-                        
-                    # Add assistant response to chat history
-                    st.session_state.messages.append({"role": "assistant", "content": response_msg})
-                else:
-                    st.error("Backend error")
-            except Exception as e:
-                st.error(f"Connection failed: {e}")
+                        st.error("Backend error")
+                except Exception as e:
+                    st.error(f"Connection failed: {e}")
+
+elif nav_selection == "About the project":
+    st.subheader("About the Project")
+    st.markdown("""
+    **AI Second Brain** is a powerful Retrieval-Augmented Generation (RAG) application that acts as your personal knowledge assistant.
+
+    It allows you to build a custom knowledge base by combining various data sources, and then ask questions against that aggregated knowledge using an LLM.
+
+    ### ✨ Key Features
+    - **Persistent FAISS Vector Storage:** Everything you add is saved to a local FAISS index on disk so you don't lose data on restarts!
+    - **Hybrid Search (BM25 + FAISS):** We perform Reciprocal Rank Fusion by combining traditional keyword searches with advanced semantic vector embeddings for extreme accuracy.
+    - **Overlapping Chunks:** Text is intelligently sliced with context overlaps so sentences don't cut off awkwardly.
+    - **Source Tracking:** The bot knows *exactly* where a fact came from (e.g. `PDF - document.pdf`, `YouTube Video - ...`) and feeds that into the prompt.
+    - **Beautiful UI:** A full chatbot experience with a live ingestion Activity Log.
+
+    ### 🛠️ Tech Stack & Tools
+    - **Frontend:** Streamlit 
+    - **Backend:** FastAPI, Python
+    - **Database:** FAISS (Facebook AI Similarity Search)
+    - **Embeddings:** `all-MiniLM-L6-v2` via SentenceTransformers
+    - **LLM Engine:** Groq API leveraging `llama-3.3-70b-versatile`
+    - **Hybrid Retrieval:** `rank_bm25` (BM25Okapi)
+    """)
