@@ -10,7 +10,11 @@ def add_documents(chunks):
 
 def retrieve(query):
 
-    query_embedding = embed_texts([query])[0]
+    query_embedding = embed_texts([query])
+
     docs = vector_db.search(query_embedding)
+
+    if not docs:
+        return ["No knowledge found in the database."]
 
     return docs

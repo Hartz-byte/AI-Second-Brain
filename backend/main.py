@@ -51,18 +51,26 @@ async def upload_pdf(file: UploadFile):
 # YOUTUBE
 @app.post("/youtube")
 def youtube(data: dict):
-
     url = data["url"]
 
-    video_id = url.split("v=")[1]
+    if "v=" in url:
+        video_id = url.split("v=")[-1].split("&")[0]
+    elif "youtu.be/" in url:
+        video_id = url.split("youtu.be/")[-1].split("?")[0]
+    elif "/shorts/" in url:
+        video_id = url.split("/shorts/")[-1].split("?")[0]
+    else:
+        video_id = url.split("/")[-1].split("?")[0]
 
     text = get_transcript(video_id)
 
-    chunks = chunk_text(text)
+    if text is None:
+        return {"error": "Transcript not available for this video"}
 
+    chunks = chunk_text(text)
     add_documents(chunks)
 
-    return {"status": "youtube added"}
+    return {"status": "YouTube transcript added"}
 
 
 # WEB SCRAPER

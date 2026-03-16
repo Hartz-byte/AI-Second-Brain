@@ -17,7 +17,18 @@ if st.button("Ask"):
         json={"question": question}
     )
 
-    st.write(r.json()["answer"])
+    if r.status_code == 200:
+
+        res = r.json()
+
+        if "error" in res:
+            st.error(res["error"])
+
+        else:
+            st.write(res["answer"])
+
+    else:
+        st.error("Backend error")
 
 
 # ADD TEXT CONTENT
