@@ -17,7 +17,7 @@ def add_log(msg):
 
 st.title("AI Second Brain 🧠")
 
-# ================= SIDEBAR =================
+# SIDEBAR
 with st.sidebar:
     st.header("⚙️ Data Ingestion")
     
@@ -85,11 +85,11 @@ with st.sidebar:
         if not st.session_state.logs:
             st.write("No activity yet.")
         else:
-            for log in reversed(st.session_state.logs):  # show latest first
+            for log in reversed(st.session_state.logs):
                 st.write(f"- {log}")
 
 
-# ================= MAIN CHAT AREA =================
+# MAIN CHAT AREA
 st.subheader("Chat with your Second Brain")
 
 # Display chat messages from history on app rerun
