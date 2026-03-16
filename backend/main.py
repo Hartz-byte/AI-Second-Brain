@@ -5,6 +5,8 @@ from backend.retriever import add_documents
 from ingestion.pdf_parser import parse_pdf
 from ingestion.youtube_parser import get_transcript
 from ingestion.web_scraper import scrape_article
+from ingestion.image_parser import analyze_image
+from ingestion.audio_parser import transcribe_audio
 
 app = FastAPI()
 
@@ -46,8 +48,15 @@ def add_content(data: dict):
 @app.post("/ask")
 def ask(data: dict):
     try:
-        answer = ask_question(data["question"])
-        return {"answer": answer}
+        data_mode = data.get("data_mode", False)
+        answer, metadata = ask_question(data["question"], data_mode=data_mode)
+        
+        if answer == "DATA_ANALYST_ROUTING_REQUIRED":
+            from backend.data_analyst import answer_data_question
+            answer = answer_data_question(data["question"])
+            metadata = {"route": "DATA_ANALYST"}
+            
+        return {"answer": answer, "metadata": metadata}
     except Exception as e:
         return {"error": str(e)}
 
@@ -69,6 +78,51 @@ async def upload_pdf(file: UploadFile):
 
     return {"status": "pdf ingested"}
 
+# CSV UPLOAD (DATA ANALYST)
+@app.post("/upload_csv")
+async def upload_csv(file: UploadFile):
+    try:
+        from backend.data_analyst import save_csv
+        contents = await file.read()
+        res = save_csv(contents)
+        return {"status": "csv uploaded", "details": res}
+    except Exception as e:
+        return {"error": str(e)}
+
+# IMAGE UPLOAD (VISION + OCR)
+@app.post("/upload_image")
+async def upload_image(file: UploadFile):
+    try:
+        image_bytes = await file.read()
+        
+        # Determine mime type from filename or default to jpeg
+        mime_type = "image/jpeg"
+        if file.filename.lower().endswith(".png"):
+            mime_type = "image/png"
+            
+        # Analyze image using Vision LLM
+        image_text = analyze_image(image_bytes, mime_type)
+        
+        # Combine a visual description preamble with the extracted text
+        full_text = f"Image Source: {file.filename}\nVision Analysis & Transcribed Text:\n{image_text}"
+        
+        # Chunk and add to vector store
+        chunks = chunk_text(full_text, source=f"Image - {file.filename}")
+        add_documents(chunks)
+        
+        return {"status": "image ingested", "details": "Vision analysis and OCR completed."}
+    except Exception as e:
+        return {"error": str(e)}
+
+# AUDIO TRANSCRIPTION (WHISPER)
+@app.post("/transcribe_audio")
+async def transcribe_audio_endpoint(file: UploadFile):
+    try:
+        audio_bytes = await file.read()
+        text = transcribe_audio(audio_bytes, file.filename)
+        return {"transcription": text}
+    except Exception as e:
+        return {"error": str(e)}
 
 # YOUTUBE
 @app.post("/youtube")

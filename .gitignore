@@ -5,3 +5,4 @@ __pycache__/
 faiss_index.bin
 meta.pkl
 temp.pdf
+temp_data.csv

@@ -22,7 +22,12 @@ Unlike traditional search, AI Second Brain understands context, tracks sources, 
   - **PDF Parser**: Extract text from documents using `PyPDF2`.
   - **YouTube Transcript**: Automatically fetch and index transcripts from video IDs/URLs.
   - **Web Scraper**: Cleanly extract article content from URLs using `BeautifulSoup`.
+  - **Vision & OCR**: Upload images and extract text/visual information via Groq's Vision LLMs.
+  - **Audio Transcription**: Ask questions via Voice using Whisper STT.
   - **Direct Paste**: Quickly add snippets of text or notes.
+- **Multimodal capabilities**: Combine text, videos, and images into a single semantic knowledge base.
+- **Agentic AI & Self-RAG**: The system actively evaluates your queries and routes them to specialized tools (Vector DB vs Data Analyst). It filters out irrelevant chunks before answering to prevent hallucinations.
+- **AI Data Analyst**: Upload tabular data (CSV) and chat with an AI Analyst to get statistical summaries and insights.
 - **Cloud Vector Database**: Uses **Pinecone Serverless** for high-speed, persistent vector storage (no data loss on server restarts).
 - **Hybrid Retrieval**: Combines semantic vector search (Dense) with keyword-based ranking (Sparse) for maximum accuracy.
 - **Lightning Fast Responses**: Powered by **Groq API** with `Llama-3.3-70b`, delivering near-instant inference.
@@ -35,17 +40,22 @@ Unlike traditional search, AI Second Brain understands context, tracks sources, 
 
 ```mermaid
 graph TD
-    A[User Content: PDF, YT, Web] --> B[Ingestion Layer]
-    B --> C[Text Chunker]
+    A[User Content: PDF, YT, Web, Images, CSV] --> B[Ingestion Layer]
+    B --> C[Text Chunker & Vision Parsers]
     C --> D[Embedding API - Hugging Face]
     D --> E[Pinecone Cloud Vector DB]
     
-    F[User Query] --> G[Embedding API]
-    G --> H[Semantic Search]
+    F[User Query: Text or Voice] -->|Whisper STT| G[Agent Router]
+    
+    G -->|Data Query| Analyst[AI Data Analyst]
+    Analyst --> J[LLM - Groq Llama 3.3]
+    
+    G -->|General/RAG Query| H[Semantic Search]
     H --> E
-    E --> I[Top-K Relevant Context]
-    I --> J[LLM - Groq Llama 3.3]
+    E --> I[Self-RAG: Relevance Check]
+    I --> J
     J --> K[Grounded Answer with Sources]
+    K -->|Web Speech API| L[Voice Output]
 ```
 
 ---
@@ -83,8 +93,8 @@ To run this project, you need the following keys in your `.env` file or cloud se
 
 2. **Create a Virtual Environment**:
    ```bash
-   python -m venv venv
-   source venv/bin/activate  # Windows: venv\Scripts\activate
+   py -3.11 -m venv venv
+   venv\Scripts\activate
    ```
 
 3. **Install Dependencies**:
