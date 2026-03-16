@@ -21,7 +21,7 @@ def get_api_url():
 # Sidebar connection indicator
 API = get_api_url()
 with st.sidebar:
-    st.caption(f"📍 Backend: `{API}`")
+    # st.caption(f"📍 Backend: `{API}`")
     st.info(f"💡 **Note:** The backend gets inactive (Render Free Tier), click [here]({API}) to wake it up.")
     if st.button("Check Connection"):
         try:
