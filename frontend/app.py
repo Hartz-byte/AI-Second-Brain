@@ -397,5 +397,6 @@ elif nav_selection == "About the project":
         - *Whisper Large V3* (Flawless Speech-to-Text)
     
     ---
-    **⭐️ Liked my work?** Check out the [GitHub repo](https://github.com/Hartz-byte/AI-Second-Brain) and give it a star!
+    ### ⭐️ Support the Project
+    **Liked my work?** Check out the [GitHub repo](https://github.com/Hartz-byte/AI-Second-Brain) and give it a star!
     """)
