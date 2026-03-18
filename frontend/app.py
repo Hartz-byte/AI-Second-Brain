@@ -45,7 +45,15 @@ with st.sidebar:
 
     # Text-to-Speech Toggle
     mute_tts = st.toggle("🔇 Mute Voice Assistant", value=False)
-    
+
+    st.divider()
+
+    st.subheader("🔍 Knowledge Scope")
+    st.caption("Filter which sources the AI searches")
+    scope_options = ["All", "PDF", "YouTube", "Image", "Web Article", "Direct Text Input"]
+    selected_scope = st.selectbox("Search in:", scope_options, index=0, label_visibility="collapsed")
+    source_filter = None if selected_scope == "All" else selected_scope
+
     st.divider()
 
 # Initialize session state for messages and logs
@@ -207,10 +215,10 @@ with st.sidebar:
     v_logs = st.container()
     with v_logs:
         if not st.session_state.logs:
-            st.write("No activity yet.")
+            st.caption("No activity yet.")
         else:
-            for log in reversed(st.session_state.logs):
-                st.write(f"- {log}")
+            for log in reversed(st.session_state.logs[-8:]):
+                st.caption(f"↳ {log}")
 
 
 # NAVIGATION BAR
@@ -229,6 +237,16 @@ if nav_selection == "Chat with your Second Brain":
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
+            # Permanently re-render eval scores if stored in history
+            if message["role"] == "assistant" and message.get("eval"):
+                ev = message["eval"]
+                rel = ev.get("relevance", 0)
+                faith = ev.get("faithfulness", 0)
+                overall = ev.get("overall", 0)
+                score_color = "🟢" if overall >= 0.6 else ("🟡" if overall >= 0.3 else "🔴")
+                st.caption(f"{score_color} **Quality** — Relevance: `{rel:.2f}` | Faithfulness: `{faith:.2f}` | Overall: `{overall:.2f}`")
+            if message.get("guardrail_warning"):
+                st.warning("⚠️ Response flagged by guardrail — treat with care.", icon="🛡️")
 
     # React to user input (Text or Voice)
     prompt = st.chat_input("Ask something about your knowledge base...")
@@ -321,9 +339,12 @@ if nav_selection == "Chat with your Second Brain":
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 try:
-                    # Get fresh API URL inside the block
                     target_api = get_api_url()
-                    r = requests.post(f"{target_api}/ask", json={"question": prompt})
+                    payload = {
+                        "question": prompt,
+                        "source_filter": source_filter,
+                    }
+                    r = requests.post(f"{target_api}/ask", json=payload)
                     if r.status_code == 200:
                         res = r.json()
                         if "error" in res:
@@ -331,17 +352,41 @@ if nav_selection == "Chat with your Second Brain":
                             st.error(res["error"])
                         else:
                             response_msg = res["answer"]
-                            st.markdown(response_msg)
-                            
-                            # Add Metadata Logging
+
+                            # Guardrail warning banner
                             meta = res.get("metadata", {})
+                            guardrail_warning = meta.get("guardrail_warning", False)
+                            if guardrail_warning:
+                                st.warning("⚠️ **Guardrail Notice:** This response may contain unverified claims — treat with care.", icon="🛡️")
+
+                            st.markdown(response_msg)
+
+                            # Evaluation score badges — always shown
+                            eval_scores = meta.get("eval", {})
+                            rel = eval_scores.get("relevance", 0)
+                            faith = eval_scores.get("faithfulness", 0)
+                            overall = eval_scores.get("overall", 0)
+                            score_color = "🟢" if overall >= 0.6 else ("🟡" if overall >= 0.3 else "🔴")
+                            st.caption(
+                                f"{score_color} **Quality** — "
+                                f"Relevance: `{rel:.2f}` | "
+                                f"Faithfulness: `{faith:.2f}` | "
+                                f"Overall: `{overall:.2f}`"
+                            )
+
+                            # Metadata activity log
                             if meta:
-                                route = meta.get("route", "Unknown")
-                                log_str = f"🤖 Agent Routed to: **{route}**"
-                                if "self_rag" in meta:
-                                    log_str += f" | 🔍 Self-RAG: *{meta['self_rag']}*"
-                                add_log(log_str)
-                            
+                                route = meta.get("route", "?")
+                                model = meta.get("model_used", "?")
+                                latency = meta.get("latency_ms", "?")
+                                cache_hit = meta.get("cache_hit", False)
+                                self_rag = meta.get("self_rag", "")
+                                cache_str = " ⚡ Cache HIT" if cache_hit else ""
+                                log_line = f"🤖 Route: **{route}** | Model: `{model}` | ⏱ {latency}ms{cache_str}"
+                                if self_rag and self_rag != "N/A":
+                                    log_line += f" | 🔍 {self_rag}"
+                                add_log(log_line)
+
                             # Text to Speech auto-play
                             if not mute_tts:
                                 escaped_text = response_msg.replace('"', '\\"').replace('\n', ' ')
@@ -352,51 +397,102 @@ if nav_selection == "Chat with your Second Brain":
                                 </script>
                                 """
                                 components.html(tts_js, height=0)
-                            
-                        # Add assistant response to chat history
-                        st.session_state.messages.append({"role": "assistant", "content": response_msg})
+
+                        # Store message with eval + guardrail in history for permanent display
+                        st.session_state.messages.append({
+                            "role": "assistant",
+                            "content": response_msg,
+                            "eval": eval_scores if eval_scores else {},
+                            "guardrail_warning": guardrail_warning,
+                        })
                     else:
                         st.error(f"Backend error: {r.status_code}")
                         st.code(r.text[:500])
-                        # Keep history consistent
                         st.session_state.messages.append({"role": "assistant", "content": "Error: Failed to get response from backend."})
                 except Exception as e:
                     error_msg = str(e)
                     if "localhost" in error_msg:
-                        st.error("⚠️ **Connection Failed: The app is still trying to look for the backend on 'localhost'.**\n\nPlease check your Streamlit Cloud **Secrets** and ensure `API_URL` is set to your Render URL.")
+                        st.error("⚠️ **Connection Failed.** Please ensure the backend is running and `API_URL` is configured correctly.")
                     else:
                         st.error(f"Connection failed: {e}")
 
 elif nav_selection == "About the project":
     st.subheader("About the Project")
     st.markdown("""
-    **AI Second Brain** is a highly capable Multimodal Agentic Retrieval-Augmented Generation (RAG) application. It acts as your ultimate, personal knowledge assistant.
+**AI Second Brain** is a production-grade, Multimodal Agentic RAG (Retrieval-Augmented Generation) system. It acts as your personal AI knowledge assistant — letting you ingest any content, then query it using text or voice, with answers grounded in your own data.
 
-    It allows you to build a custom knowledge base by combining various data sources (text, video, and images), and then uses an intelligent agent router to determine how to best answer your queries.
+---
 
-    ### ✨ Key Features
-    - **Multimodal Ingestion**: 
-        - **PDFs & Web Scraping**: Ingest lengthy documents and website content seamlessly.
-        - **YouTube Transcripts**: Extract knowledge directly from video content.
-        - **Vision & OCR**: Upload images and let the Llama 3.2 Vision model transcribe text and comprehensively describe visual content.
-        - **Tabular Data Analyst**: Upload CSVs to instantly talk to an intelligent Data Analyst that uses Pandas to summarize schemas and generate insights.
-    - **Agentic Routing System**: The backend utilizes a dynamic LLM router that actively interprets your intent and directs queries to the appropriate tools (Vector Search vs Data Analyst vs Direct Chat).
-    - **Self-Improving RAG (Reflection)**: Eradicates hallucinations! Retrieves documents and autonomously grades them for strict relevance before attempting to draft a response. 
-    - **Real-Time Voice Assistant**: Use the floating microphone to submit queries via Speech-to-Text (powered by Whisper API), and listen to answers out loud with automatic Text-to-Speech!
-    - **Persistent Cloud Vector Storage**: Pinecone Serverless guarantees you never lose context between sessions.
-    
-    ### 🛠️ Tech Stack & Tools
-    - **Frontend Ecosystem**: Streamlit, `audio_recorder_streamlit`, Web Speech API (JavaScript)
-    - **Backend Framework**: FastAPI (Python), Pandas SDK
-    - **Cloud Vector Database**: Pinecone Serverless
-    - **Embeddings**: `all-MiniLM-L6-v2` via Hugging Face Inference API
-    - **Generative AI Engines**: Groq API
-        - *Llama 3.3 70B* (Core Reasoning & Generation)
-        - *Llama 4 Scout 17B* (Vision & Image Understanding)
-        - *Llama 3.1 8B* (Ultra-fast Self-RAG relevance checker)
-        - *Whisper Large V3* (Flawless Speech-to-Text)
-    
-    ---
-    ### ⭐️ Support the Project
-    **Liked my work?** Check out the [GitHub repo](https://github.com/Hartz-byte/AI-Second-Brain) and give it a star!
+### ✨ Core Features
+
+| Feature | Description |
+|---|---|
+| 📄 PDF Ingestion | Extract & index full-text from PDF documents |
+| 🌐 Web Scraping | Ingest any article or web page by URL |
+| 🎥 YouTube Transcripts | Auto-fetch & index video transcripts |
+| 🖼️ Vision & OCR | Upload images — AI describes & transcribes visual content |
+| 📊 AI Data Analyst | Upload CSVs, ask natural language questions about your data |
+| 📝 Direct Text | Paste raw notes or snippets directly |
+| 🎙️ Voice Input | Speak your question via Whisper STT |
+| 🔊 Voice Output | Hear AI responses via Web Speech API TTS |
+| 🔍 Knowledge Scope | Filter searches by source type (PDF, YouTube, Image, etc.) |
+| ⚡ Redis Caching | Instant answers for repeated queries |
+| 🛡️ Input Guardrails | Detects & blocks prompt injection attacks |
+| 📐 Output Guardrails | Faithfulness grounding check — flags potential hallucinations |
+| 📊 Quality Scores | Auto-scores every response on Relevance & Faithfulness |
+| 🔁 Retry / Fallback | Auto-retries failed API calls; falls back to alternate model |
+| 🌊 Streaming | Real-time token streaming via /ask_stream SSE endpoint |
+
+---
+
+### 🤖 Agentic AI Architecture
+
+```
+User Query → Cache Check → Input Guardrail → Agent Router
+       ├── VECTOR_SEARCH → Pinecone + Self-RAG Filter → LLM
+       ├── DATA_ANALYST  → Pandas Schema + LLM Analysis
+       └── DIRECT_CHAT   → Direct LLM Response
+                              ↓
+             Output Guardrail → Evaluation Score → Cache Write
+```
+
+**Key AI Techniques:**
+- **Hybrid Retrieval**: Dense (vector) + Sparse (BM25 keyword) retrieval combined
+- **Self-RAG (Reflection)**: Retrieved chunks are individually graded for relevance before answering — eliminates hallucinations
+- **Dynamic LLM Routing**: Simple queries → fast model; complex queries → powerful model (cost optimized)
+- **Multi-Agent Orchestration**: Intent classifier routes to the best specialized tool
+- **Async Parallel Processing**: Relevance checks run in parallel via `asyncio.gather`
+
+---
+
+### 🛠️ Tech Stack & Tools
+
+| Layer | Technology |
+|---|---|
+| **Frontend** | Streamlit, `audio_recorder_streamlit`, Web Speech API |
+| **Backend API** | FastAPI (Python 3.11), async endpoints |
+| **Orchestrator** | Custom async pipeline (`orchestrator.py`) |
+| **Vector Database** | Pinecone Serverless (AWS us-east-1) |
+| **Caching** | Redis Cloud (30MB free tier) |
+| **Embeddings** | `all-MiniLM-L6-v2` — Hugging Face Inference API |
+| **LLM Engine** | Groq API (ultra-fast LPU inference) |
+| **Deployment** | Render (backend) + Streamlit Cloud (frontend) |
+
+---
+
+### 🧠 AI Models Used
+
+| Model | Purpose |
+|---|---|
+| `llama-3.3-70b-versatile` | Core reasoning & complex answer generation |
+| `llama-3.1-8b-instant` | Fast routing, Self-RAG grading, simple queries |
+| `meta-llama/llama-4-scout-17b-16e-instruct` | Vision analysis & OCR (image understanding) |
+| `whisper-large-v3` | Speech-to-Text transcription |
+| `all-MiniLM-L6-v2` | Semantic document embedding (384-dim vectors) |
+
+---
+
+### ⭐️ Liked my work?
+Check out the [GitHub repo](https://github.com/Hartz-byte/AI-Second-Brain) and give it a star!
     """)
+
