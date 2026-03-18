@@ -11,7 +11,7 @@ Access the deployed application here: [https://ai-second-brain-rag.streamlit.app
 ---
 
 ## Overview
-**AI Second Brain** is a Retrieval-Augmented Generation (RAG) system designed to act as your external digital memory. It allows you to ingest vast amounts of information from multiple sources—PDFs, YouTube videos, web articles, and direct text—and then chat with that knowledge using state-of-the-art LLMs. 
+**AI Second Brain** is a Retrieval-Augmented Generation (RAG) system designed to act as your external digital memory. It allows you to ingest vast amounts of information from multiple sources—PDFs, YouTube videos, images, web articles, and direct text—and then chat with that knowledge or even describe an image using state-of-the-art LLMs. 
 
 Unlike traditional search, AI Second Brain understands context, tracks sources, and provides grounded answers derived specifically from your personal data pool.
 
