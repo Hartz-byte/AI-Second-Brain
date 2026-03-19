@@ -1,7 +1,6 @@
-# AI Second Brain 
+# AI Second Brain 🧠
 
-**Your Personal AI-Powered Knowledge Assistant**
-
+**Your Production-Grade Multimodal Agentic Knowledge Assistant**
 
 ## Live Demo
 Access the deployed application here: [https://ai-second-brain-rag.streamlit.app/](https://ai-second-brain-rag.streamlit.app/)
@@ -10,127 +9,107 @@ Access the deployed application here: [https://ai-second-brain-rag.streamlit.app
 
 ---
 
-## Overview
-**AI Second Brain** is a Retrieval-Augmented Generation (RAG) system designed to act as your external digital memory. It allows you to ingest vast amounts of information from multiple sources—PDFs, YouTube videos, images, web articles, and direct text—and then chat with that knowledge or even describe an image using state-of-the-art LLMs. 
+## 🚀 Overview
+**AI Second Brain** is a production-grade Retrieval-Augmented Generation (RAG) system designed to act as your external digital memory. It transforms raw data—PDFs, YouTube videos, images, web articles, and CSVs—into a searchable, conversational knowledge base.
 
-Unlike traditional search, AI Second Brain understands context, tracks sources, and provides grounded answers derived specifically from your personal data pool.
-
----
-
-## Features
-- **Multi-Source Ingestion**:
-  - **PDF Parser**: Extract text from documents using `PyPDF2`.
-  - **YouTube Transcript**: Automatically fetch and index transcripts from video IDs/URLs.
-  - **Web Scraper**: Cleanly extract article content from URLs using `BeautifulSoup`.
-  - **Vision & OCR**: Upload images and extract text/visual information via Groq's Vision LLMs.
-  - **Audio Transcription**: Ask questions via Voice using Whisper STT.
-  - **Direct Paste**: Quickly add snippets of text or notes.
-- **Multimodal capabilities**: Combine text, videos, and images into a single semantic knowledge base.
-- **Agentic AI & Self-RAG**: The system actively evaluates your queries and routes them to specialized tools (Vector DB vs Data Analyst). It filters out irrelevant chunks before answering to prevent hallucinations.
-- **AI Data Analyst**: Upload tabular data (CSV) and chat with an AI Analyst to get statistical summaries and insights.
-- **Cloud Vector Database**: Uses **Pinecone Serverless** for high-speed, persistent vector storage (no data loss on server restarts).
-- **Hybrid Retrieval**: Combines semantic vector search (Dense) with keyword-based ranking (Sparse) for maximum accuracy.
-- **Lightning Fast Responses**: Powered by **Groq API** with `Llama-3.3-70b`, delivering near-instant inference.
-- **Lightweight Deployment**: Optimized for Free Tier hosting (Render & Streamlit) by offloading heavy ML processing to **Hugging Face Inference APIs**.
-- **Source Attribution**: Every answer generated include references to the original source (e.g., *Source: YouTube Video - ID*) to ensure transparency.
+Recently upgraded to a **Service-Oriented Architecture (SOA)**, the system now features ultra-fast inference, intelligent model routing, and built-in security guardrails to ensure reliability and performance at scale.
 
 ---
 
-## Architecture
+## ✨ Key Features
+
+- **📂 Multimodal Ingestion**:
+  - **PDF & Web**: Full-text indexing for documents and web articles.
+  - **YouTube Transcripts**: Automatic extraction and indexing from video URLs.
+  - **Vision & OCR**: Image analysis and text extraction via `Llama-4-Scout`.
+  - **Voice Intelligence**: Speech-to-Text (Whisper) and Text-to-Speech output.
+  - **AI Data Analyst**: Natural language querying for CSV files using Pandas.
+
+- **🤖 Advanced Agentic Orchestration**:
+  - **Intelligent Router**: Automatically directs queries to Vector Search, Data Analyst, or Direct Chat.
+  - **Dynamic Model Routing**: Optimizes cost and speed by using `Llama-3.1-8b` for simple tasks and `Llama-3.3-70b` for complex reasoning.
+  - **Self-RAG (Reflection)**: Autonomously grades retrieved context for relevance to eliminate hallucinations.
+
+- **⚡ Performance & Reliability**:
+  - **Redis Caching**: Instant response times for repeated queries via distributed caching.
+  - **Async Pipelines**: Parallelized processing for retrieval and relevance checks using `asyncio`.
+  - **Retry & Fallback**: Automatic exponential backoff and secondary model fallback for 99.9% uptime.
+
+- **🛡️ Trust & Observability**:
+  - **Guardrails**: Built-in detection for prompt injections and faithfulness grounding checks.
+  - **Real-time Eval Scores**: Every response is auto-scored for *Relevance* and *Faithfulness*.
+  - **Live Activity Logs**: Monitor agent routes, model latency, and cache hits in the UI.
+  - **Source Attribution**: Transparent referencing of original data sources for every answer.
+
+---
+
+## 🏗️ Architecture
 
 ```mermaid
 graph TD
-    A[User Content: PDF, YT, Web, Images, CSV] --> B[Ingestion Layer]
-    B --> C[Text Chunker & Vision Parsers]
-    C --> D[Embedding API - Hugging Face]
-    D --> E[Pinecone Cloud Vector DB]
+    A[Content: PDF, YT, Web, Images, CSV] --> B[Ingestion Service]
+    B --> C[Vector Store: Pinecone]
     
-    F[User Query: Text or Voice] -->|Whisper STT| G[Agent Router]
+    Query[User Query: Text/Voice] --> Guard[Input Guardrail]
+    Guard --> Cache{Redis Cache?}
+    Cache -->|Hit| Finish[Response + Eval]
+    Cache -->|Miss| Router[Agent Router]
     
-    G -->|Data Query| Analyst[AI Data Analyst]
-    Analyst --> J[LLM - Groq Llama 3.3]
+    Router -->|RAG| AsyncSearch[Async Parallel Search]
+    AsyncSearch --> SelfRAG[Self-RAG Grading]
+    SelfRAG --> SlowLLM[Llama-3.3-70b]
     
-    G -->|General/RAG Query| H[Semantic Search]
-    H --> E
-    E --> I[Self-RAG: Relevance Check]
-    I --> J
-    J --> K[Grounded Answer with Sources]
-    K -->|Web Speech API| L[Voice Output]
+    Router -->|Simple/Chat| FastLLM[Llama-3.1-8b]
+    
+    SlowLLM --> OutGuard[Output Guardrail]
+    FastLLM --> OutGuard
+    OutGuard --> Eval[Evaluation System]
+    Eval --> Finish
 ```
 
 ---
 
-## Tech Stack
-- **Frontend**: [Streamlit](https://streamlit.io/) (Clean, interactive UI)
-- **Backend**: [FastAPI](https://fastapi.tiangolo.com/) (High-performance API layer)
-- **Vector DB**: [Pinecone](https://www.pinecone.io/) (Serverless vector storage)
-- **Embeddings**: `all-MiniLM-L6-v2` via **Hugging Face Inference Router**
-- **LLM Engine**: [Groq](https://groq.com/) (**Llama 3.3 70B**)
-- **Deployment**: [Render](https://render.com/) (Backend) & [Streamlit Cloud](https://share.streamlit.io/) (Frontend)
+## 🛠️ Tech Stack
+- **Frontend**: [Streamlit](https://streamlit.io/) (Rich UI with real-time streaming)
+- **Backend**: [FastAPI](https://fastapi.tiangolo.com/) (Async Service-Oriented Architecture)
+- **Orchestrator**: Custom Async Pipeline (`orchestrator.py`)
+- **Vector DB**: [Pinecone](https://www.pinecone.io/) (Serverless)
+- **Caching**: [Redis](https://redis.io/) (Distributed Caching)
+- **LLM Engine**: [Groq](https://groq.com/) (LPU™ Inference)
+- **Models**: Llama-3.3-70b, Llama-3.1-8b, Llama-4-Scout-17b, Whisper-v3
 
 ---
 
-## Environment Variables
-To run this project, you need the following keys in your `.env` file or cloud secrets:
-
-| Variable | Description | Source |
-| :--- | :--- | :--- |
-| `GROQ_API_KEY` | For LLM Inference | [Groq Console](https://console.groq.com/) |
-| `PINECONE_API_KEY` | For Vector Database | [Pinecone Console](https://app.pinecone.io/) |
-| `HF_TOKEN` | For Embedding API | [Hugging Face Settings](https://huggingface.co/settings/tokens) |
-| `OPENAI_API_BASE` | `https://api.groq.com/openai/v1` | Groq's OpenAI-compatible endpoint |
-| `API_URL` | Your Backend URL | Provided by Render after deployment |
+## 🔑 Environment Variables
+| Variable | Description |
+| :--- | :--- |
+| `GROQ_API_KEY` | For high-speed LLM inference |
+| `PINECONE_API_KEY` | For persistent vector database |
+| `REDIS_URL` | Redis connection string (e.g., `redis://:pwd@host:port`) |
+| `HF_TOKEN` | For Hugging Face Inference API (embeddings) |
+| `OPENAI_API_BASE` | `https://api.groq.com/openai/v1` |
+| `API_URL` | Backend URL (Local: `http://localhost:8000`) |
 
 ---
 
-## Installation & Local Setup
+## 💻 Installation & Setup
 
-1. **Clone the repository**:
+1. **Clone & Install**:
    ```bash
    git clone https://github.com/Hartz-byte/AI-Second-Brain.git
-   cd AI-Second-Brain
-   ```
-
-2. **Create a Virtual Environment**:
-   ```bash
-   py -3.11 -m venv venv
-   venv\Scripts\activate
-   ```
-
-3. **Install Dependencies**:
-   ```bash
    pip install -r requirements.txt
    ```
 
-4. **Run the Backend**:
+2. **Run Services**:
    ```bash
+   # Terminal 1: Backend
    uvicorn backend.main:app --reload
-   ```
-
-5. **Run the Frontend**:
-   ```bash
+   
+   # Terminal 2: Frontend
    streamlit run frontend/app.py
    ```
 
 ---
 
-## Deployment
-
-### Backend (Render)
-- Deploy as a **Web Service**.
-- Select Python 3.11.
-- Add all environment variables to the **Environment** tab.
-- **Start Command**: `uvicorn backend.main:app --host 0.0.0.0 --port $PORT`
-
-### Frontend (Streamlit Cloud)
-- Connect your GitHub repo.
-- Point to `frontend/app.py` as the main file.
-- Add `API_URL`, `GROQ_API_KEY`, `PINECONE_API_KEY`, etc., to the **Secrets** tab in TOML format.
-
----
-
-## Contributing
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-## License
-This project is licensed under the MIT License - see the LICENSE file for details.
+## ⭐️ Support the Project
+If you find this project useful, please give it a star on [GitHub](https://github.com/Hartz-byte/AI-Second-Brain)!
